@@ -6,12 +6,27 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  user-select: none;
+  
+  /* Disables text selection */
+  -webkit-user-select: none; /* Safari/Chrome/Edge/Tauri */
+  -moz-user-select: none;    /* Firefox */
+  -ms-user-select: none;     /* IE/Edge */
+  user-select: none;         /* Standard */
+
+  /* Disables the "ghost image" when dragging elements */
+  -webkit-user-drag: none;
+  
+  /* Disables the blue "tap highlight" on mobile/touch screens */
+  -webkit-tap-highlight-color: transparent;
 }
 
+/* Re-enable for actual input areas */
 input,
 textarea,
 [contenteditable="true"] {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
   user-select: text;
 }
 

@@ -8,15 +8,10 @@
 </head>
 <body>
   <!-- Title Bar -->
-  <div class="title-bar">
-    <div class="title-bar-left">
-      <img src="paint-icon.png" alt="" class="title-icon" onerror="this.style.display='none'" />
-      <span class="title-text">Untitled - Paint</span>
-    </div>
-    <div class="title-bar-buttons">
-      <button class="tb-btn" id="btn-minimize">─</button>
-      <button class="tb-btn" id="btn-maximize">□</button>
-      <button class="tb-btn tb-close" id="btn-close">✕</button>
+  <div class="title-bar" data-tauri-drag-region>
+    <div class="window-title" data-tauri-drag-region>
+      <img src="icon.png" class="window-icon" />
+      untitled - Paint
     </div>
   </div>
 
