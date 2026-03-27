@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Paint</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Title Bar -->
+  <div class="title-bar">
+    <div class="title-bar-left">
+      <img src="paint-icon.png" alt="" class="title-icon" onerror="this.style.display='none'" />
+      <span class="title-text">Untitled - Paint</span>
+    </div>
+    <div class="title-bar-buttons">
+      <button class="tb-btn" id="btn-minimize">─</button>
+      <button class="tb-btn" id="btn-maximize">□</button>
+      <button class="tb-btn tb-close" id="btn-close">✕</button>
+    </div>
+  </div>
+
+  <!-- Menu Bar -->
+  <div class="menu-bar">
+    <div class="menu-item" id="menu-file">
+      File
+      <div class="dropdown" id="dropdown-file">
+        <div class="dd-item" id="dd-new">New</div>
+        <div class="dd-item" id="dd-open">Open...</div>
+        <div class="dd-separator"></div>
+        <div class="dd-item" id="dd-save">Save</div>
+        <div class="dd-item" id="dd-save-as">Save As...</div>
+        <div class="dd-separator"></div>
+        <div class="dd-item" id="dd-exit">Exit</div>
+      </div>
+    </div>
+    <div class="menu-item" id="menu-edit">
+      Edit
+      <div class="dropdown" id="dropdown-edit">
+        <div class="dd-item" id="dd-undo">Undo &nbsp;&nbsp; Ctrl+Z</div>
+        <div class="dd-item" id="dd-redo">Redo &nbsp;&nbsp; Ctrl+Y</div>
+        <div class="dd-separator"></div>
+        <div class="dd-item" id="dd-select-all">Select All</div>
+        <div class="dd-separator"></div>
+        <div class="dd-item" id="dd-clear">Clear Image</div>
+      </div>
+    </div>
+    <div class="menu-item" id="menu-view">View</div>
+    <div class="menu-item" id="menu-image">Image</div>
+    <div class="menu-item" id="menu-help">Help</div>
+  </div>
+
+  <!-- Ribbon Toolbar -->
+  <div class="ribbon">
+    <!-- Clipboard -->
+    <div class="ribbon-group">
+      <div class="ribbon-group-title">Clipboard</div>
+      <div class="ribbon-group-content">
+        <button class="ribbon-btn big-btn" id="rb-paste" title="Paste (Ctrl+V)">
+          <span class="rb-icon">📋</span>
+          <span class="rb-label">Paste</span>
+        </button>
+        <div class="ribbon-sub-btns">
+          <button class="ribbon-btn" id="rb-cut" title="Cut (Ctrl+X)">✂ Cut</button>
+          <button class="ribbon-btn" id="rb-copy" title="Copy (Ctrl+C)">⎘ Copy</button>
+        </div>
+      </div>
+    </div>
+    <div class="ribbon-divider"></div>
+
+    <!-- Image -->
+    <div class="ribbon-group">
+      <div class="ribbon-group-title">Image</div>
+      <div class="ribbon-group-content">
+        <button class="ribbon-btn big-btn" id="rb-select" title="Select">
+          <span class="rb-icon">⬚</span>
+          <span class="rb-label">Select</span>
+        </button>
+        <button class="ribbon-btn big-btn" id="rb-crop" title="Crop">
+          <span class="rb-icon">✂</span>
+          <span class="rb-label">Crop</span>
+        </button>
+        <button class="ribbon-btn big-btn" id="rb-resize" title="Resize">
+          <span class="rb-icon">⤡</span>
+          <span class="rb-label">Resize</span>
+        </button>
+      </div>
+    </div>
+    <div class="ribbon-divider"></div>
+
+    <!-- Tools -->
+    <div class="ribbon-group">
+      <div class="ribbon-group-title">Tools</div>
+      <div class="ribbon-group-content tools-grid">
+        <button class="tool-btn active" id="tool-pencil" data-tool="pencil" title="Pencil">✏️</button>
+        <button class="tool-btn" id="tool-brush" data-tool="brush" title="Brush">🖌️</button>
+        <button class="tool-btn" id="tool-fill" data-tool="fill" title="Fill with color">🪣</button>
+        <button class="tool-btn" id="tool-text" data-tool="text" title="Text">A</button>
+        <button class="tool-btn" id="tool-eraser" data-tool="eraser" title="Eraser">⬜</button>
+        <button class="tool-btn" id="tool-picker" data-tool="picker" title="Color picker">💉</button>
+        <button class="tool-btn" id="tool-zoom" data-tool="zoom" title="Zoom">🔍</button>
+        <button class="tool-btn" id="tool-select-rect" data-tool="select-rect" title="Rectangular Select">▭</button>
+      </div>
+    </div>
+    <div class="ribbon-divider"></div>
+
+    <!-- Brushes -->
+    <div class="ribbon-group">
+      <div class="ribbon-group-title">Brushes</div>
+      <div class="ribbon-group-content brushes-grid">
+        <button class="brush-style-btn active" data-brush="round" title="Round brush">●</button>
+        <button class="brush-style-btn" data-brush="square" title="Square brush">■</button>
+        <button class="brush-style-btn" data-brush="calligraphy1" title="Calligraphy 1">╱</button>
+        <button class="brush-style-btn" data-brush="calligraphy2" title="Calligraphy 2">╲</button>
+        <button class="brush-style-btn" data-brush="spray" title="Spray">✦</button>
+        <button class="brush-style-btn" data-brush="watercolor" title="Watercolor">💧</button>
+      </div>
+    </div>
+    <div class="ribbon-divider"></div>
+
+    <!-- Shapes -->
+    <div class="ribbon-group">
+      <div class="ribbon-group-title">Shapes</div>
+      <div class="ribbon-group-content shapes-grid">
+        <button class="shape-btn" data-shape="line" title="Line">╱</button>
+        <button class="shape-btn" data-shape="curve" title="Curve">⌒</button>
+        <button class="shape-btn" data-shape="rect" title="Rectangle">▭</button>
+        <button class="shape-btn" data-shape="round-rect" title="Rounded Rectangle">▢</button>
+        <button class="shape-btn" data-shape="ellipse" title="Ellipse">◯</button>
+        <button class="shape-btn" data-shape="triangle" title="Triangle">△</button>
+        <button class="shape-btn" data-shape="right-triangle" title="Right Triangle">◺</button>
+        <button class="shape-btn" data-shape="diamond" title="Diamond">◇</button>
+        <button class="shape-btn" data-shape="pentagon" title="Pentagon">⬠</button>
+        <button class="shape-btn" data-shape="arrow" title="Arrow">➜</button>
+      </div>
+    </div>
+    <div class="ribbon-divider"></div>
+
+    <!-- Size -->
+    <div class="ribbon-group">
+      <div class="ribbon-group-title">Size</div>
+      <div class="ribbon-group-content size-panel">
+        <div class="size-options">
+          <button class="size-btn active" data-size="1" title="1px">
+            <div class="size-dot" style="width:2px;height:2px;"></div>
+          </button>
+          <button class="size-btn" data-size="3" title="3px">
+            <div class="size-dot" style="width:4px;height:4px;"></div>
+          </button>
+          <button class="size-btn" data-size="6" title="6px">
+            <div class="size-dot" style="width:7px;height:7px;"></div>
+          </button>
+          <button class="size-btn" data-size="12" title="12px">
+            <div class="size-dot" style="width:13px;height:13px;"></div>
+          </button>
+        </div>
+        <div class="size-slider-wrap">
+          <input type="range" id="brush-size" min="1" max="50" value="3" />
+          <span id="brush-size-label">3px</span>
+        </div>
+      </div>
+    </div>
+    <div class="ribbon-divider"></div>
+
+    <!-- Colors -->
+    <div class="ribbon-group">
+      <div class="ribbon-group-title">Colors</div>
+      <div class="ribbon-group-content colors-panel">
+        <div class="color-swatches-wrap">
+          <div class="active-colors">
+            <div class="color-swatch-main" id="color2-swatch" title="Color 2 (Background)" style="background:#ffffff;"></div>
+            <div class="color-swatch-main fg" id="color1-swatch" title="Color 1 (Foreground)" style="background:#000000;"></div>
+          </div>
+          <div class="color-label-col">
+            <span class="active-color-label">Color 1</span>
+            <span class="active-color-label">Color 2</span>
+          </div>
+          <div class="palette-grid" id="palette-grid"></div>
+          <input type="color" id="custom-color-input" style="display:none" />
+          <button class="edit-colors-btn" id="edit-colors-btn">Edit Colors...</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Area -->
+  <div class="main-area">
+    <!-- Canvas Viewport -->
+    <div class="canvas-viewport" id="canvas-viewport">
+      <div class="canvas-wrapper" id="canvas-wrapper">
+        <canvas id="main-canvas"></canvas>
+        <canvas id="overlay-canvas"></canvas>
+        <!-- Selection box -->
+        <div class="selection-box" id="selection-box" style="display:none;"></div>
+        <!-- Text input overlay -->
+        <textarea id="text-input" style="display:none;" spellcheck="false"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span id="status-coords">0, 0px</span>
+    <div class="status-divider"></div>
+    <span id="status-size">1360 × 746px</span>
+    <div class="status-divider"></div>
+    <div class="zoom-controls">
+      <button id="zoom-out-btn">–</button>
+      <div class="zoom-bar">
+        <input type="range" id="zoom-slider" min="10" max="800" value="100" step="10" />
+      </div>
+      <button id="zoom-in-btn">+</button>
+      <span id="zoom-label">100%</span>
+    </div>
+  </div>
+
+  <!-- Resize Dialog -->
+  <div class="modal-overlay" id="resize-modal" style="display:none;">
+    <div class="modal">
+      <div class="modal-title">Resize and Skew</div>
+      <div class="modal-section">
+        <div class="modal-section-title">Resize</div>
+        <div class="modal-row">
+          <label><input type="radio" name="resize-unit" value="percent" checked /> Percentage</label>
+          <label><input type="radio" name="resize-unit" value="pixels" /> Pixels</label>
+        </div>
+        <div class="modal-row">
+          <label>Horizontal: <input type="number" id="resize-h" value="100" min="1" /></label>
+        </div>
+        <div class="modal-row">
+          <label>Vertical: <input type="number" id="resize-v" value="100" min="1" /></label>
+        </div>
+        <div class="modal-row">
+          <label><input type="checkbox" id="resize-maintain" checked /> Maintain aspect ratio</label>
+        </div>
+      </div>
+      <div class="modal-buttons">
+        <button id="resize-ok">OK</button>
+        <button id="resize-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <input type="file" id="open-file-input" accept="image/*" style="display:none;" />
+
+  <script src="main.js"></script>
+</body>
+</html>
