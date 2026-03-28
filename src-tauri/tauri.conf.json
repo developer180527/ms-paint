@@ -10,7 +10,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "Paint",
+        "title": "",
         "decorations": true,
         "titleBarStyle": "Overlay",
         "width": 1200,

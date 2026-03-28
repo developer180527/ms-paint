@@ -61,13 +61,51 @@ html, body {
 .title-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   height: var(--title-bar-height);
+  /* Match macOS native title bar color so it blends in */
   background: linear-gradient(to bottom, #4d9de0 0%, #2471c9 50%, #1a5faf 100%);
-  padding: 0 4px 0 6px;
+  border-bottom: none;
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* Left zone: reserve exactly 78px for macOS traffic lights (close/min/max) */
+.title-bar-traffic-lights {
+  width: 78px;
   flex-shrink: 0;
 }
 
+/* Center: absolute so it's truly centered regardless of side widths */
+.title-bar-center {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none; /* let drag-region work through it */
+}
+
+.title-filename {
+  font-size: 13px;
+  font-weight: 500;
+  color: #2c2c2c;
+  font-family: -apple-system, 'Helvetica Neue', sans-serif;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 500px;
+}
+
+/* Right mirror spacer = same width as left so center stays centered */
+.title-bar-right {
+  width: 78px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* ── Keep old classes that might still be referenced ── */
 .title-bar-left {
   display: flex;
   align-items: center;
@@ -77,7 +115,7 @@ html, body {
 .title-icon { width: 16px; height: 16px; }
 
 .title-text {
-  color: white;
+  color: #2c2c2c;
   font-size: 12px;
   font-weight: bold;
   text-shadow: 1px 1px 2px rgba(0,0,0,0.4);

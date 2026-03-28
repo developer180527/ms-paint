@@ -736,6 +736,12 @@ document.getElementById('zoom-out-btn').addEventListener('click', () => setZoom(
 // ── Keyboard Shortcuts ─────────────────────────
 document.addEventListener('keydown', e => {
   const ctrl = e.ctrlKey || e.metaKey;
+
+  // Don't fire shortcuts when typing in any input, textarea or modal
+  const tag = document.activeElement.tagName.toLowerCase();
+  const inModal = document.activeElement.closest('.modal-overlay');
+
+  if (tag === 'input' || tag === 'textarea' || tag === 'select' || inModal) return;
   if (ctrl && e.key === 'z') { e.preventDefault(); undo(); return; }
   if (ctrl && e.key === 'y') { e.preventDefault(); redo(); return; }
   if (ctrl && e.key === 'n') { e.preventDefault(); newCanvas(); return; }
@@ -759,12 +765,192 @@ document.addEventListener('keydown', e => {
 
 // ── File Operations ────────────────────────────
 function newCanvas() {
-  if (confirm('Do you want to save changes before creating a new image?')) saveImage();
-  saveState();
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
-  document.querySelector('.title-text').textContent = 'Untitled - Paint';
+  openNewCanvasDialog();
+  document.getElementById('new-filename').value = 'Untitled';
 }
+
+// ── New Canvas Dialog ─────────────────────────
+const PRESETS = {
+  'custom':      null,
+  '900x600':     [900,  600],
+  '1920x1080':   [1920, 1080],
+  '3840x2160':   [3840, 2160],
+  '1080x1080':   [1080, 1080],
+  '2480x3508':   [2480, 3508],
+  '3508x2480':   [3508, 2480],
+  '800x600':     [800,  600],
+};
+
+let _newBg          = 'white';
+let _newAspectRatio = null;   // stores W/H ratio when lock is on
+
+function openNewCanvasDialog() {
+  // Reset to defaults
+  document.getElementById('new-preset').value  = '900x600';
+  document.getElementById('new-width').value   = 900;
+  document.getElementById('new-height').value  = 600;
+  document.getElementById('new-lock-ratio').checked = false;
+  document.querySelector('input[name="new-orientation"][value="portrait"]').checked = true;
+  _newBg = 'white';
+  _newAspectRatio = null;
+  document.querySelectorAll('.new-bg-btn').forEach(b => {
+    b.style.border = b.dataset.bg === 'white' ? '2px solid #6daee0' : '1px solid #ccc';
+  });
+  _updateNewPreview();
+  document.getElementById('new-canvas-modal').style.display = 'flex';
+}
+
+function _updateNewPreview() {
+  const w = parseInt(document.getElementById('new-width').value)  || 900;
+  const h = parseInt(document.getElementById('new-height').value) || 600;
+
+  // Aspect-fit into 80x54 preview box
+  const scale  = Math.min(78 / w, 52 / h);
+  const pw     = Math.round(w * scale);
+  const ph     = Math.round(h * scale);
+
+  const inner  = document.getElementById('new-canvas-preview-inner');
+  const info   = document.getElementById('new-canvas-info');
+
+  inner.style.width  = pw + 'px';
+  inner.style.height = ph + 'px';
+  inner.style.margin = 'auto';
+
+  if (_newBg === 'white') {
+    inner.style.background = '#ffffff';
+  } else if (_newBg === 'black') {
+    inner.style.background = '#000000';
+  } else if (_newBg === 'transparent') {
+    inner.style.background = 'repeating-conic-gradient(#ccc 0% 25%, #eee 0% 50%) 0 0 / 8px 8px';
+  } else {
+    inner.style.background = _newBg;
+  }
+
+  info.textContent = w + ' × ' + h + ' px';
+}
+
+// ── Preset change ─────────────────────────────
+document.getElementById('new-preset').addEventListener('change', e => {
+  const val = e.target.value;
+  if (val === 'custom') return;
+  const [w, h] = PRESETS[val];
+  const orientation = document.querySelector('input[name="new-orientation"]:checked').value;
+  document.getElementById('new-width').value  = orientation === 'landscape' ? Math.max(w,h) : Math.min(w,h);
+  document.getElementById('new-height').value = orientation === 'landscape' ? Math.min(w,h) : Math.max(w,h);
+  if (document.getElementById('new-lock-ratio').checked) {
+    _newAspectRatio = parseInt(document.getElementById('new-width').value) /
+                     parseInt(document.getElementById('new-height').value);
+  }
+  _updateNewPreview();
+});
+
+// ── Orientation toggle ────────────────────────
+document.querySelectorAll('input[name="new-orientation"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    const w = parseInt(document.getElementById('new-width').value);
+    const h = parseInt(document.getElementById('new-height').value);
+    if (radio.value === 'landscape' && w < h) {
+      document.getElementById('new-width').value  = h;
+      document.getElementById('new-height').value = w;
+    } else if (radio.value === 'portrait' && w > h) {
+      document.getElementById('new-width').value  = h;
+      document.getElementById('new-height').value = w;
+    }
+    _updateNewPreview();
+  });
+});
+
+// ── Swap W / H ────────────────────────────────
+document.getElementById('new-swap-btn').addEventListener('click', () => {
+  const w = document.getElementById('new-width').value;
+  const h = document.getElementById('new-height').value;
+  document.getElementById('new-width').value  = h;
+  document.getElementById('new-height').value = w;
+  _updateNewPreview();
+});
+
+// ── Aspect ratio lock ─────────────────────────
+document.getElementById('new-lock-ratio').addEventListener('change', e => {
+  if (e.target.checked) {
+    const w = parseInt(document.getElementById('new-width').value);
+    const h = parseInt(document.getElementById('new-height').value);
+    _newAspectRatio = w / h;
+  } else {
+    _newAspectRatio = null;
+  }
+});
+
+document.getElementById('new-width').addEventListener('input', () => {
+  if (_newAspectRatio) {
+    const w = parseInt(document.getElementById('new-width').value) || 1;
+    document.getElementById('new-height').value = Math.round(w / _newAspectRatio);
+  }
+  document.getElementById('new-preset').value = 'custom';
+  _updateNewPreview();
+});
+
+document.getElementById('new-height').addEventListener('input', () => {
+  if (_newAspectRatio) {
+    const h = parseInt(document.getElementById('new-height').value) || 1;
+    document.getElementById('new-width').value = Math.round(h * _newAspectRatio);
+  }
+  document.getElementById('new-preset').value = 'custom';
+  _updateNewPreview();
+});
+
+// ── Background buttons ────────────────────────
+document.querySelectorAll('.new-bg-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    _newBg = btn.dataset.bg;
+    document.querySelectorAll('.new-bg-btn').forEach(b => {
+      b.style.border = '1px solid #ccc';
+    });
+    btn.style.border = '2px solid #6daee0';
+    _updateNewPreview();
+  });
+});
+
+document.getElementById('new-bg-color').addEventListener('input', e => {
+  _newBg = e.target.value;
+  document.querySelectorAll('.new-bg-btn').forEach(b => b.style.border = '1px solid #ccc');
+  document.getElementById('new-bg-custom-label').style.border = '2px solid #6daee0';
+  _updateNewPreview();
+});
+
+// ── Cancel ────────────────────────────────────
+document.getElementById('new-canvas-cancel').addEventListener('click', () => {
+  document.getElementById('new-canvas-modal').style.display = 'none';
+});
+
+// ── Create ────────────────────────────────────
+document.getElementById('new-canvas-ok').addEventListener('click', () => {
+  const w = parseInt(document.getElementById('new-width').value);
+  const h = parseInt(document.getElementById('new-height').value);
+  if (!w || !h || w < 1 || h < 1) return;
+
+  saveState();
+  setCanvasSize(w, h);
+
+  // Fill background
+  if (_newBg === 'transparent') {
+    ctx.clearRect(0, 0, w, h);
+  } else if (_newBg === 'white') {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, w, h);
+  } else if (_newBg === 'black') {
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, w, h);
+  } else {
+    ctx.fillStyle = _newBg;
+    ctx.fillRect(0, 0, w, h);
+  }
+
+  _currentFilePath = null;
+  const filename = document.getElementById('new-filename').value.trim() || 'Untitled';
+  setTitleFilename(filename);
+  setZoom(1);
+  document.getElementById('new-canvas-modal').style.display = 'none';
+});
 
 function openImage() {
   document.getElementById('open-file-input').click();
@@ -780,23 +966,99 @@ document.getElementById('open-file-input').addEventListener('change', e => {
     setCanvasSize(img.width, img.height);
     ctx.drawImage(img, 0, 0);
     setZoom(1);
-    document.querySelector('.title-text').textContent = file.name + ' - Paint';
+    setTitleFilename(file.name);
     URL.revokeObjectURL(url);
   };
   img.src = url;
   e.target.value = '';
 });
 
-function saveImage() {
-  const link = document.createElement('a');
-  link.download = 'image.png';
-  link.href = mainCanvas.toDataURL('image/png');
-  link.click();
+
+
+// ── Current file path (set after first Save As) ─
+let _currentFilePath = null;
+
+// ── Update title bar filename display ─────────
+function setTitleFilename(name) {
+  const el = document.getElementById('title-filename');
+  if (el) el.textContent = name + ' - Paint';
 }
 
-function saveAs() {
-  // Could offer jpg/png choice — simplified here
-  saveImage();
+// ── Ctrl+S: save to known path or open dialog ─
+async function saveImage() {
+  if (_currentFilePath && window.__TAURI__) {
+    await _writeToDisk(_currentFilePath);
+  } else {
+    await saveAs();
+  }
+}
+
+// ── Save As: native OS dialog ─────────────────
+async function saveAs() {
+
+  function _getCurrentFilename() {
+  const titleEl = document.getElementById('title-filename');
+  if (!titleEl) return 'untitled.png';
+
+  // Strip " - Paint" suffix to get just the name
+  const name = titleEl.textContent.replace(' - Paint', '').trim();
+
+  // If it already has an extension keep it, otherwise add .png
+  const hasExt = /\.(png|jpg|jpeg|bmp|webp)$/i.test(name);
+  return hasExt ? name : name + '.png';
+  }
+  
+  if (!window.__TAURI__) { _browserDownload(); return; }
+
+  try {
+    const { save } = await import('@tauri-apps/plugin-dialog');
+
+    const filePath = await save({
+      title:       'Save Image As',
+        defaultPath: _currentFilePath || _getCurrentFilename(),
+      filters: [
+        { name: 'PNG Image',  extensions: ['png']         },
+        { name: 'JPEG Image', extensions: ['jpg', 'jpeg'] },
+        { name: 'BMP Image',  extensions: ['bmp']         },
+        { name: 'WebP Image', extensions: ['webp']        },
+      ],
+    });
+
+    if (!filePath) return; // user cancelled
+
+    await _writeToDisk(filePath);
+    _currentFilePath = filePath;
+
+    const fileName = filePath.split(/[\\/]/).pop();
+    setTitleFilename(fileName);
+
+  } catch (err) {
+    console.error('Save As failed:', err);
+    _browserDownload();
+  }
+}
+
+// ── Write canvas → disk via Tauri fs plugin ───
+async function _writeToDisk(filePath) {
+  const { writeFile } = await import('@tauri-apps/plugin-fs');
+
+  const ext      = filePath.split('.').pop().toLowerCase();
+  const mimeMap  = { jpg: 'image/jpeg', jpeg: 'image/jpeg', bmp: 'image/bmp', webp: 'image/webp' };
+  const mimeType = mimeMap[ext] ?? 'image/png';
+  const quality  = ['image/jpeg', 'image/webp'].includes(mimeType) ? 0.92 : 1.0;
+
+  const dataUrl = mainCanvas.toDataURL(mimeType, quality);
+  const base64  = dataUrl.split(',')[1];
+  const bytes   = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+  await writeFile(filePath, bytes);
+}
+
+// ── Browser download fallback ─────────────────
+function _browserDownload() {
+  const link    = document.createElement('a');
+  link.download = 'untitled.png';
+  link.href     = mainCanvas.toDataURL('image/png');
+  link.click();
 }
 
 function selectAll() {
@@ -886,6 +1148,48 @@ document.getElementById('resize-ok').addEventListener('click', () => {
   setCanvasSize(nw, nh);
   document.getElementById('resize-modal').style.display = 'none';
 });
+
+// Open from URL
+document.getElementById('dd-open-url').addEventListener('click', () => {
+  document.getElementById('url-input').value = '';
+  document.getElementById('url-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('url-input').focus(), 50);
+});
+
+document.getElementById('url-cancel').addEventListener('click', () => {
+  document.getElementById('url-modal').style.display = 'none';
+});
+
+document.getElementById('url-ok').addEventListener('click', loadFromUrl);
+
+document.getElementById('url-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') loadFromUrl();
+  if (e.key === 'Escape') document.getElementById('url-modal').style.display = 'none';
+});
+
+async function loadFromUrl() {
+  const url = document.getElementById('url-input').value.trim();
+  if (!url) return;
+
+  document.getElementById('url-modal').style.display = 'none';
+
+  const img = new Image();
+  img.crossOrigin = 'anonymous'; // needed to avoid canvas taint
+  
+  img.onload = () => {
+    saveState();
+    setCanvasSize(img.width, img.height);
+    ctx.drawImage(img, 0, 0);
+    setZoom(1);
+    setTitleFilename(url.split('/').pop() || 'image');
+  };
+
+  img.onerror = () => {
+    alert('Failed to load image.\n\nThis is usually a CORS restriction — the server doesn\'t allow cross-origin requests.\n\nTry downloading the image and using Open... instead.');
+  };
+
+  img.src = url;
+}
 
 // Maintain aspect ratio sync
 document.getElementById('resize-h').addEventListener('input', e => {
